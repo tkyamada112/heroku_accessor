@@ -6,6 +6,7 @@ import (
         "flag"
         "fmt"
         "log"
+        "strings"
         "github.com/heroku/heroku-go/v3"
 )
 
@@ -83,9 +84,11 @@ func ReadUsers() []AddUsers {
                 if err != nil{
                     break
                 }
-                lines = append(lines, AddUsers{
-                        email: string(buf[:n]),
-                })
+                for _, line := range strings.Split(string(buf[:n]), "\n") {
+                        lines = append(lines, AddUsers{
+                                email: string(line),
+                        })
+                }
         }
         return lines
 }
@@ -129,6 +132,7 @@ func main() {
         case "updateuser":
                 if appName != "" {
                         AddUsers := ReadUsers()
+
                         ExistingUsers := h.ListCollaborators(appName)
 
                         for  _, eu := range ExistingUsers {
@@ -137,8 +141,9 @@ func main() {
                         for _, au := range AddUsers {
                                 opts := heroku.CollaboratorCreateOpts{Silent: &flagSilent, User: au.email}
                                 h.cli.CollaboratorCreate(context.TODO(), appName, opts)
-                                fmt.Println("User Added.")
+                                
                         }
+                        fmt.Println("User Added.")
                 } else {
                         fmt.Println("Set Application name. option with '-name xxxxxxx'")
                 }
